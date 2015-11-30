@@ -1,7 +1,5 @@
 import React, { Component } from 'react';
 import { observer } from 'mobservable-react';
-import { DragDropContext as dragDropContext } from 'react-dnd';
-import HTML5Backend from 'react-dnd-html5-backend';
 import Canvas from './Canvas.js';
 import Graph from '../models/Graph.js';
 import Arrow from './Arrow.js';
@@ -57,6 +55,4 @@ class App extends Component {
   }
 }
 
-export default dragDropContext(HTML5Backend)(
-  observer(App)
-);
+export default observer(App);
