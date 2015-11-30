@@ -16,18 +16,15 @@ class Canvas extends Component {
     const { onClick, children } = this.props;
 
     return <div
-      ref={node => {
-        this._canvas = node;
-      }}
+      ref={node => {this._canvas = node;}}
       style={{
         position: 'relative',
         overflow: 'hidden',
         border: '1px solid #ccc',
-        width: 640,
         height: 480
       }}
       onClick={e => {
-        if (e.metaKey || e.ctrlKey) {
+        if (e.metaKey || e.altKey) {
           onClick({x: e.nativeEvent.layerX, y: e.nativeEvent.layerY});
         }
       }}

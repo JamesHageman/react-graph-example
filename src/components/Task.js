@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { observer } from 'mobservable-react';
 import TaskModel from '../models/Task.js';
+import { findDOMNode } from 'react-dom';
 
 const { func, bool, instanceOf } = React.PropTypes;
 
@@ -9,9 +10,7 @@ class Task extends Component {
     task: instanceOf(TaskModel).isRequired,
     selected: bool,
     onClick: func.isRequired,
-
-    // from react-dnd
-    connectDragSource: func
+    onMouseMove: func.isRequired
   }
 
   constructor(props) {
@@ -19,26 +18,31 @@ class Task extends Component {
     this._listener = null;
   }
 
-  mouseMoveHandler = ({ x, y }, e) => {
-    const { task } = this.props;
-
-    task.x = e.clientX - x;
-    task.y = e.clientY - y;
+  componentWillUnmount() {
+    this._unsubscribe();
   }
 
   handleMouseDown = (e) => {
-    this._listener = this.mouseMoveHandler.bind(this, {
-      x: e.nativeEvent.layerX,
-      y: e.nativeEvent.layerY
+    const rect = findDOMNode(this.refs.task).getBoundingClientRect();
+    this._listener = this.props.onMouseMove.bind(this, {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
     });
 
     this.props.onClick(e);
 
     document.addEventListener('mousemove', this._listener, false);
+    document.addEventListener('mouseup', this._unsubscribe, false);
   }
 
-  handleMouseUp = () => {
+  _unsubscribe = () => {
     document.removeEventListener('mousemove', this._listener);
+    document.removeEventListener('mouseup', this._unsubscribe);
+  }
+
+  handleMouseUp = (e) => {
+    document.removeEventListener('mousemove', this._listener);
+    e.stopPropagation();
   }
 
   render() {
@@ -58,6 +62,7 @@ class Task extends Component {
         left: task.x,
         transform: 'translate(-50%, -50%)'
       }}
+      ref="task"
       onMouseDown={this.handleMouseDown}
       onMouseUp={this.handleMouseUp}>
       <input

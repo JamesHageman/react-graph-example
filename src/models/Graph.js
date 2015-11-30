@@ -7,8 +7,20 @@ export default class Graph {
     extendObservable(this, {
       tasks: [],
       arrows: [],
-      selectedTask: null
+      selectedTask: null,
+      windowDimensions: this.getWindowDimesions()
     });
+
+    window.addEventListener('resize', () => {
+      this.windowDimensions = this.getWindowDimesions();
+    }, false);
+  }
+
+  getWindowDimesions() {
+    return {
+      width: window.innerWidth,
+      height: window.innerHieght
+    };
   }
 
   addTask = ({x, y, name = ''}) => {
