@@ -17,6 +17,30 @@ class App extends Component {
   constructor(props) {
     super(props);
     this._canvas = null;
+    this._unsub = () => {};
+  }
+
+  handleTaskDragStart = (task, mouseDownEv) => {
+    const origin = {
+      x: task.x - mouseDownEv.clientX,
+      y: task.y - mouseDownEv.clientY
+    };
+
+    const handler = (mouseMoveEv) => {
+      task.x = origin.x + mouseMoveEv.clientX;
+      task.y = origin.y + mouseMoveEv.clientY;
+    };
+
+    document.addEventListener('mousemove', handler, false);
+
+    this._unsub = () => {
+      document.removeEventListener('mousemove', handler);
+    };
+  }
+
+  handleTaskDragEnd = (task, e) => {
+    e.stopPropagation();
+    this._unsub();
   }
 
   handleTaskMouseMove = (task, { x, y }, e) => {
@@ -25,9 +49,17 @@ class App extends Component {
     task.y = e.clientY - canvas.top;
   }
 
-  handleCanvasClick = ({ x, y }) => {
+  handleCanvasClick = ({ x, y }, e) => {
     const { store } = this.props;
-    store.addTask({ x, y });
+    const newTask = store.addTask({ x, y });
+    if (e.shiftKey && store.selectedTask) {
+      store.addArrow(store.selectedTask, newTask);
+      store.selectedTask = newTask;
+    }
+  }
+
+  handleClickAway = () => {
+    this.props.store.selectedTask = null;
   }
 
   render() {
@@ -39,7 +71,7 @@ class App extends Component {
           <h2>React Graph Example</h2>
           <ul className="list-unstyled">
             <li>Cmd-click or Alt-click on the canvas to add a task</li>
-            <li>Select a task, and shift-click on another to make a dependency</li>
+            <li>Shift click to join tasks with a line</li>
           </ul>
         </div>
       </div>
@@ -48,7 +80,9 @@ class App extends Component {
         <div className="col-sm-8">
 
           <Canvas ref={canvas => {this._canvas = canvas;}}
-            onClick={this.handleCanvasClick}>
+            onClick={this.handleCanvasClick}
+            onClickAway={this.handleClickAway}>
+
             <svg
               width={store.windowDimensions.width}
               height={480}
@@ -75,20 +109,30 @@ class App extends Component {
 
             {store.tasks.map(task =>
               <Task
-                onMouseMove={this.handleTaskMouseMove.bind(this, task)}
                 key={task.id}
                 task={task}
                 selected={store.selectedTask === task}
-                onClick={e => {
-                  const { selectedTask } = store;
-                  if (selectedTask && selectedTask !== task && e.shiftKey) {
-                    // create an arrow
-                    store.addArrow(selectedTask, task);
-                    store.selectedTask = task;
-                    return;
-                  }
 
+                onDragStart={this.handleTaskDragStart.bind(this, task)}
+                onDragEnd={this.handleTaskDragEnd.bind(this, task)}
+
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // const { selectedTask } = store;
+                  // if (selectedTask && selectedTask !== task && e.shiftKey) {
+                  //   // create an arrow
+                  //   store.addArrow(selectedTask, task);
+                  //   store.selectedTask = task;
+                  //   return;
+                  // }
+                  const { selectedTask } = store;
+                  if (selectedTask && e.shiftKey) {
+                    store.addArrow(selectedTask, task);
+                  }
                   store.selectedTask = task;
+                }}
+                onDeleteClick={() => {
+                  store.removeTask(task);
                 }}/>
             )}
           </Canvas>

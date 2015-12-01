@@ -11,10 +11,10 @@ class Arrow extends Component {
   }
 
   render() {
-    const { to, from } = this.props.arrow;
+    const { toTask, fromTask } = this.props.arrow;
     const { markerId } = this.props;
-    return <path d={`M ${ from.x } ${ from.y } L ${ to.x } ${ to.y }`}
-      stroke="blue" strokeWidth="3" markerEnd={`url(#${ markerId })`}/>;
+    return <path d={`M ${ fromTask.x } ${ fromTask.y } L ${ toTask.x } ${ toTask.y }`}
+      stroke="blue" strokeWidth="3" markerMid={`url(#${ markerId })`}/>;
   }
 }
 

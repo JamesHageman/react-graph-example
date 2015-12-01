@@ -4,19 +4,18 @@ import { observer } from 'mobservable-react';
 class Canvas extends Component {
   static propTypes = {
     onClick: React.PropTypes.func.isRequired,
+    onClickAway: React.PropTypes.func.isRequired,
     children: React.PropTypes.node
   }
 
   constructor() {
     super();
-    this._canvas = null;
   }
 
   render() {
-    const { onClick, children } = this.props;
+    const { onClick, onClickAway, children } = this.props;
 
     return <div
-      ref={node => {this._canvas = node;}}
       style={{
         position: 'relative',
         overflow: 'hidden',
@@ -24,8 +23,10 @@ class Canvas extends Component {
         height: 480
       }}
       onClick={e => {
-        if (e.metaKey || e.altKey) {
-          onClick({x: e.nativeEvent.layerX, y: e.nativeEvent.layerY});
+        if (e.metaKey || e.altKey || e.shiftKey) {
+          onClick({x: e.nativeEvent.layerX, y: e.nativeEvent.layerY}, e);
+        } else {
+          onClickAway(e);
         }
       }}
     >
